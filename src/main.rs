@@ -1,6 +1,7 @@
 use dotenv::dotenv;
-use std::thread;
-use tpulse::watcher::watch_window;
+use std::{thread::{self, sleep}, time::Duration};
+use screen_inspector::window::get_current_window_information;
+use screen_inspector::mouse::get_mouse_position;
 fn main() {
     dotenv().ok();
     env_logger::init();
@@ -9,17 +10,20 @@ fn main() {
         .parse::<u64>()
         .unwrap();
 
-    // let afk_settings = AFKSettings::new(5000, poll_time);
-    // let afk_watcher = AFKWatcher::new(&afk_settings);
-
-    // let afk_watch = thread::spawn(move || {
-    //     afk_watcher.run();
-    // });
+    let afk_watch = thread::spawn(move || {
+        loop {
+            sleep(Duration::from_millis(poll_time));
+            let pos = get_mouse_position();
+            println!("Mouse position: {:?}", pos);
+        }
+    });
 
     let window_watcher = thread::spawn(move || {
-        watch_window(poll_time);
+        sleep(Duration::from_millis(poll_time));
+        let info = get_current_window_information().unwrap();
+        println!("Window information: {:?}", info);
     });
 
     window_watcher.join().unwrap();
-    // afk_watch.join().unwrap();
+    afk_watch.join().unwrap();
 }

@@ -3,29 +3,20 @@ use log::info;
 use regex::Regex;
 use serde::Serialize;
 use std::{process::Command, thread::sleep, time::Duration};
-
-pub fn watch_window(poll_time: u64) {
-    info!("Window watcher started !");
-    loop {
-        sleep(Duration::from_millis(poll_time));
-        let window_raw_id = get_window_id().unwrap();
-        let window_info = get_window_information(window_raw_id);
-        match window_info {
-            std::result::Result::Ok(window_info) => {
-                info!("{}", serde_json::to_string_pretty(&window_info).unwrap());
-            }
-            Err(e) => {
-                info!("Window information error: {}", e);
-            }
-        }
-    }
-}
+use std::fs;
 
 #[derive(Debug, Serialize)]
-struct WindowInformation {
+pub struct WindowInformation {
     title: Option<String>,
     class: Option<Vec<String>>,
     exec_path: Option<String>,
+}
+
+
+pub fn get_current_window_information() -> Result<WindowInformation> {
+    let window_raw_id = get_window_id().unwrap();
+    let window_info = get_window_information_by_id(window_raw_id)?;
+    Ok(window_info)
 }
 
 #[cfg(target_os = "linux")]
@@ -54,8 +45,6 @@ fn get_window_id() -> Result<i64> {
 
 #[cfg(target_os = "linux")]
 fn get_window_information(window_id: i64) -> Result<WindowInformation> {
-    use std::fs;
-
     let bin = "xprop";
     let window_raw_infor = Command::new(bin)
         .env("LC_ALL", "C.utf8")
@@ -115,7 +104,7 @@ fn get_window_information(window_id: i64) -> Result<WindowInformation> {
 }
 
 #[cfg(target_os = "windows")]
-fn get_window_information(window_id: i64) -> Result<WindowInformation> {
+fn get_window_information_by_id(window_id: i64) -> Result<WindowInformation> {
     unimplemented!("Windows is not supported yet.")
 }
 
