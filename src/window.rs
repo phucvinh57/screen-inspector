@@ -1,18 +1,19 @@
-use anyhow::{anyhow, Ok, Result};
-use log::info;
-use regex::Regex;
-use serde::Serialize;
-use std::{process::Command, thread::sleep, time::Duration};
-use std::fs;
+#[cfg(target_os = "linux")]
+use {
+    anyhow::{anyhow, Ok, Result},
+    regex::Regex,
+    std::fs,
+    std::process::Command,
+};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct WindowInformation {
     title: Option<String>,
     class: Option<Vec<String>>,
     exec_path: Option<String>,
 }
 
-
+#[cfg(target_os = "linux")]
 pub fn get_current_window_information() -> Result<WindowInformation> {
     let window_raw_id = get_window_id().unwrap();
     let window_info = get_window_information_by_id(window_raw_id)?;
@@ -104,21 +105,90 @@ fn get_window_information(window_id: i64) -> Result<WindowInformation> {
 }
 
 #[cfg(target_os = "windows")]
-fn get_window_information_by_id(window_id: i64) -> Result<WindowInformation> {
-    unimplemented!("Windows is not supported yet.")
+use {
+    anyhow::Result,
+    windows::core::PWSTR,
+    windows::Win32::Foundation::{HANDLE, HWND, MAX_PATH},
+    windows::Win32::System::Threading::{
+        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
+        PROCESS_QUERY_LIMITED_INFORMATION,
+    },
+    windows::Win32::UI::WindowsAndMessaging::{
+        GetForegroundWindow, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId,
+    },
+};
+
+#[cfg(target_os = "windows")]
+pub fn get_current_window_information() -> Result<WindowInformation> {
+    let mut window_info = WindowInformation {
+        title: None,
+        class: None,
+        exec_path: None,
+    };
+    unsafe {
+        let mut pid = 0;
+        let hwnd = GetForegroundWindow();
+        GetWindowThreadProcessId(hwnd, Option::Some(&mut pid));
+        let window_title = get_window_title(hwnd).unwrap();
+
+        let phlde: HANDLE = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).unwrap();
+        let (path, name) = get_process_path_and_name(phlde);
+       
+        window_info.title = Some(window_title);
+        window_info.exec_path = Some(path);
+        window_info.class = Some(vec![name]);
+    }
+    Ok(window_info)
+}
+#[cfg(target_os = "windows")]
+fn get_process_path_and_name(phlde: HANDLE) -> (String, String) {
+    // Allocate a buffer to store the path on stack
+    let mut buf = [0u16; MAX_PATH as usize];
+    let lpexename = PWSTR::from_raw(buf.as_mut_ptr());
+    let mut dw_size = MAX_PATH as u32;
+    unsafe {
+        QueryFullProcessImageNameW(
+            phlde,
+            PROCESS_NAME_FORMAT::default(),
+            lpexename,
+            &mut dw_size,
+        )
+        .unwrap();
+
+        let path = lpexename.to_string().unwrap();
+
+        let separator = if cfg!(windows) { '\\' } else { '/' };
+
+        let name = if let Some(index) = path.rfind(separator) {
+            path[(index + 1)..].to_string()
+        } else {
+            String::new()
+        };
+
+        (path, name)
+    }
 }
 
 #[cfg(target_os = "windows")]
-fn get_window_id() -> Result<i64> {
+fn get_window_title(hwnd: HWND) -> Option<String> {
+    let mut buf_size = unsafe { GetWindowTextLengthW(hwnd) };
+    buf_size += 1; // for '\0' terminator
+    let mut title_buf: Vec<u16> = vec![0; buf_size as usize];
+
+    let len = unsafe { GetWindowTextW(hwnd, &mut title_buf) };
+    if len == 0 {
+        return None;
+    }
+
+    // Resize vector to actual length received from GetWindowTextW
+    title_buf.truncate(len as usize);
+
+    // Convert UTF-16 (Wide string) to UTF8 String
+    let title = String::from_utf16(&title_buf).unwrap();
+    Some(title)
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_current_window_information() -> Result<WindowInformation> {
     unimplemented!("Windows is not supported yet.")
-}
-
-#[cfg(target_os = "macos")]
-fn get_window_information(window_id: i64) -> Result<WindowInformation> {
-    unimplemented!("MacOS is not supported yet.")
-}
-
-#[cfg(target_os = "macos")]
-fn get_window_id() -> Result<i64> {
-    unimplemented!("MacOS is not supported yet.")
 }

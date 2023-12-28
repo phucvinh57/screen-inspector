@@ -6,6 +6,9 @@ What to retrieve:
 - Exec path
 - Window class (window name)
 
+Nice to have:
+- URL of browsers (not supported yet)
+
 ## Error handling packages
 
 - `anyhow`: Use when don't care about error type, you just want it to be easy. This is common in application-like code.
@@ -22,5 +25,21 @@ What to retrieve:
   - WM_NAME(UTF8_STRING) | \_NET_WM_NAME(UTF8_STRING) = Window title
   - \_NET_WM_PID(CARDINAL): Window PID
 - From PID, get exec path by readlink `/proc/<pid>/exe`
+
+## Windows
+
+
+# Windows
+
+- Get window id: [`GetForegroundWindow() -> HWND`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/UI/WindowsAndMessaging/fn.GetForegroundWindow.html)
+- From window id:
+  - Get PID: [`GetWindowThreadProcessId(HWND, *mut DWORD) -> BOOL`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/UI/WindowsAndMessaging/fn.GetWindowThreadProcessId.html)
+  - Open process handle: [`OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, <PID>)`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/System/Threading/fn.OpenProcess.html)
+- Get exec path: [GetModuleFileNameA(HWND, &execPath, maxChar)](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/System/LibraryLoader/fn.GetModuleFileNameA.html#) -> From exec path, get window name
+- Get window title: [`GetWindowTextA(HWND, &title)`](https://microsoft.github.io/windows-docs-rs/doc/windows/Win32/UI/WindowsAndMessaging/fn.GetWindowTextA.html)
+
+# Mac
+
+Need more research.
 
 
