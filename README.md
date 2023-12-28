@@ -38,5 +38,5 @@ Need more research.
 There are many ways:
 
 - Access browser's shared memory/data directly. It's not only difficult to do, but also painful on different browsers.
-- Use browser's extension. Extensions can communitcate to a process by [native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging) or via calling HTTP request to a private network (usually `localhost`). It's easy to do, but it's quite annoying to install extension for each browser for users.
+- Use browser's extension. Extensions can communitcate to a process by [native messaging](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging) or via calling HTTP request to a private network (usually `localhost`). It's easy to do, but it's quite annoying to install extension for each browser for users.
 - Catch browser's network requests, then parse URLs. It's crazy to do, exhausted parsing, mapping data and it's not reliable
