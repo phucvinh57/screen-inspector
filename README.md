@@ -5,14 +5,7 @@ What to retrieve:
 - Window title
 - Exec path
 - Window class (window name)
-
-Nice to have:
 - URL of browsers (not supported yet)
-
-## Error handling packages
-
-- `anyhow`: Use when don't care about error type, you just want it to be easy. This is common in application-like code.
-- `thiserror`: Use when you care about designing your own dedicated error type(s) so that the caller receives exactly the information that you choose in the event of failure. This most often applies to library-like code.
 
 ## Linux
 
