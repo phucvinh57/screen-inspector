@@ -45,7 +45,7 @@ fn get_window_id() -> Result<i64> {
 }
 
 #[cfg(target_os = "linux")]
-fn get_window_information(window_id: i64) -> Result<WindowInformation> {
+fn get_window_information_by_id(window_id: i64) -> Result<WindowInformation> {
     let bin = "xprop";
     let window_raw_infor = Command::new(bin)
         .env("LC_ALL", "C.utf8")
