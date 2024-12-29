@@ -3,6 +3,7 @@ mod linux;
 mod device;
 mod types;
 mod windows;
+mod utils;
 
 pub use {device::*, types::WindowInformation};
 
