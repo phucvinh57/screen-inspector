@@ -1,6 +1,6 @@
 #[cfg(target_os = "windows")]
 use {
-    super::types::WindowInformation,
+    super::{types::WindowInformation, utils::get_browser_active_tab_url},
     std::time::SystemTime,
     windows::core::PWSTR,
     windows::Win32::Foundation::{HANDLE, HWND, MAX_PATH},
@@ -17,24 +17,32 @@ pub fn get_current_window_information() -> Option<WindowInformation> {
     let unix_ts = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap();
+    let title: String;
+    let name: String;
+    let execpath: String;
 
     unsafe {
         let mut pid = 0;
         let hwnd = GetForegroundWindow();
         GetWindowThreadProcessId(hwnd, Option::Some(&mut pid));
-        let window_title = get_window_title(hwnd).unwrap();
+        title = get_window_title(hwnd).unwrap();
 
         let phlde: HANDLE = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).unwrap();
         let (window_execpath, window_name) = get_process_path_and_name(phlde);
 
-        Some(WindowInformation {
-            time: unix_ts.as_secs(),
-            title: window_title,
-            class: vec![window_name],
-            execpath: window_execpath,
-            browser_url: None,
-        })
+        name = window_name;
+        execpath = window_execpath;
     }
+    let mut window = WindowInformation {
+        time: unix_ts.as_secs(),
+        title,
+        class: vec![name],
+        execpath,
+        url: None,
+    };
+    let browser = window.get_browser_type();
+    window.url = get_browser_active_tab_url(browser);
+    Some(window)
 }
 
 #[cfg(target_os = "windows")]
