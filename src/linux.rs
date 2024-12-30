@@ -5,10 +5,11 @@ use {
     regex::Regex,
     std::fs,
     std::process::Command,
+    std::time::SystemTime
 };
 
 #[cfg(target_os = "linux")]
-pub fn get_current_window_information() -> Option<WindowMetric> {
+pub fn get_current_window_information() -> Option<WindowInformation> {
     let window_raw_id = get_window_id().unwrap();
     if window_raw_id == 0 {
         // No open window found
@@ -43,7 +44,7 @@ fn get_window_id() -> Result<i64> {
 }
 
 #[cfg(target_os = "linux")]
-fn get_window_information_by_id(window_id: i64) -> Option<WindowMetric> {
+fn get_window_information_by_id(window_id: i64) -> Option<WindowInformation> {
     let bin = "xprop";
     let window_raw_infor = Command::new(bin)
         .env("LC_ALL", "C.utf8")
@@ -101,12 +102,12 @@ fn get_window_information_by_id(window_id: i64) -> Option<WindowMetric> {
         }
     }
 
-    let window = WindowMetric {
+    let window = WindowInformation {
         time,
         title: title.unwrap(),
         class: class.unwrap(),
-        exec_path,
-        category: None,
+        execpath: exec_path.unwrap(),
+        browser_url: None,
     };
 
     Some(window)
