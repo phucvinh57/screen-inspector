@@ -1,6 +1,6 @@
 #[cfg(target_os = "windows")]
 use {
-    super::{types::WindowInformation, utils::get_browser_active_tab_url},
+    super::{types::WindowInformation, browser::get_browser_active_tab_url},
     std::time::SystemTime,
     windows::core::PWSTR,
     windows::Win32::Foundation::{HANDLE, HWND, MAX_PATH},
