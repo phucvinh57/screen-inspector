@@ -1,9 +1,10 @@
+mod browser;
 mod darwin;
-mod linux;
 mod device;
+mod linux;
+mod snss;
 mod types;
 mod windows;
-mod utils;
 
 pub use {device::*, types::WindowInformation};
 
@@ -17,13 +18,14 @@ pub use windows::get_current_window_information;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::debug;
     use {std::thread::sleep, std::time::Duration};
 
     #[test]
     fn test_get_current_window_information() {
         sleep(Duration::from_secs(2));
         let window_info = get_current_window_information().unwrap();
-        println!("{:?}", window_info);
+        debug!("{:?}", window_info);
     }
 
     #[test]
