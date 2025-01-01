@@ -1,5 +1,7 @@
-use crate::{snss, types::Browser};
+use crate::types::Browser;
 use std::fs;
+
+use super::snss;
 
 /// Get most recently modified session file from browser session folder
 fn get_current_active_session_file(browser: Browser) -> Option<String> {

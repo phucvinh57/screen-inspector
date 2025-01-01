@@ -1,12 +1,17 @@
 mod browser;
 mod device;
 mod native_app;
-mod snss;
 mod types;
+use browser::get_browser_active_tab_url;
 pub use {device::*, types::WindowInformation};
 
 pub fn get_current_window_information() -> Option<WindowInformation> {
-    native_app::get_current_window_information()
+    let mut window = native_app::get_current_window_information()?;
+
+    let browser = window.get_browser_type();
+    window.url = get_browser_active_tab_url(browser);
+
+    Some(window)
 }
 
 #[cfg(test)]
