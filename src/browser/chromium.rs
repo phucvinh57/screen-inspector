@@ -185,7 +185,8 @@ fn get_group(groups: &mut HashMap<String, TabGroup>, high: u64, low: u64) -> &mu
 // These are the commands that are stored in the SNSS file
 // <int16(size)><int8(type id)><payload(size - 1 bytes)>
 // When user do an action, browser will append a "command" to SNSS file
-pub fn read_snss_file(path: String) -> Option<String> {
+// From a list of commands, we can reconstruct the browser state, such as active tab, active window, etc ...
+pub fn get_current_active_url(path: String) -> Option<String> {
     let mut f = File::open(path).ok()?;
 
     // Read header
