@@ -1,4 +1,4 @@
 mod browser;
-mod snss;
+mod chromium;
 
 pub use browser::get_browser_active_tab_url;

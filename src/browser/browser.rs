@@ -1,7 +1,7 @@
 use crate::types::Browser;
 use std::fs;
 
-use super::snss;
+use super::chromium;
 
 /// Get most recently modified session file from browser session folder
 fn get_current_active_session_file(browser: Browser) -> Option<String> {
@@ -117,7 +117,7 @@ fn get_session_folder_path(browser: Browser) -> Option<String> {
 
 pub fn get_browser_active_tab_url(browser: Browser) -> Option<String> {
     let session_file = get_current_active_session_file(browser)?;
-    snss::read_snss_file(session_file);
+    chromium::read_snss_file(session_file);
     None
 }
 
