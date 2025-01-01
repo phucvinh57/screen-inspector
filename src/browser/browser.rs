@@ -117,8 +117,7 @@ fn get_session_folder_path(browser: Browser) -> Option<String> {
 
 pub fn get_browser_active_tab_url(browser: Browser) -> Option<String> {
     let session_file = get_current_active_session_file(browser)?;
-    chromium::read_snss_file(session_file);
-    None
+    chromium::read_snss_file(session_file)
 }
 
 #[cfg(test)]
