@@ -33,16 +33,13 @@ pub fn get_current_window_information() -> Option<WindowInformation> {
         name = window_name;
         execpath = window_execpath;
     }
-    let mut window = WindowInformation {
+    Some(WindowInformation {
         time: unix_ts.as_secs(),
         title,
         class: vec![name],
         execpath,
         url: None,
-    };
-    let browser = window.get_browser_type();
-    window.url = get_browser_active_tab_url(browser);
-    Some(window)
+    })
 }
 
 #[cfg(target_os = "windows")]

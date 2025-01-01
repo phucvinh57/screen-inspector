@@ -45,8 +45,6 @@ fn get_window_id() -> Result<i64> {
 
 #[cfg(target_os = "linux")]
 fn get_window_information_by_id(window_id: i64) -> Option<WindowInformation> {
-    use crate::browser::get_browser_active_tab_url;
-
     let bin = "xprop";
     let window_raw_infor = Command::new(bin)
         .env("LC_ALL", "C.utf8")
@@ -104,16 +102,12 @@ fn get_window_information_by_id(window_id: i64) -> Option<WindowInformation> {
         }
     }
 
-    let mut window = WindowInformation {
+    let window = WindowInformation {
         time,
         title: title.unwrap(),
         class: class.unwrap(),
         execpath: exec_path.unwrap(),
         url: None,
     };
-
-    let browser = window.get_browser_type();
-    window.url = get_browser_active_tab_url(browser);
-
     Some(window)
 }
