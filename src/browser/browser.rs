@@ -1,3 +1,5 @@
+use log::warn;
+
 use crate::types::Browser;
 use std::fs;
 
@@ -35,89 +37,104 @@ fn get_current_active_session_file(browser: Browser) -> Option<String> {
 fn get_session_folder_path(browser: Browser) -> Option<String> {
     let binding = dirs::home_dir()?;
     let homedir = binding.to_str()?;
-    let mut browser_data_path: Option<String> = None;
-    let session_folder: Option<&str> = if cfg!(target_os = "windows") {
-        Some("User Data\\Default\\Sessions")
-    } else if cfg!(target_os = "linux") {
-        Some("Default/Sessions")
-    } else if cfg!(target_os = "macos") {
-        Some("Default/Sessions")
-    } else {
-        return None;
-    };
-    if session_folder.is_none() {
-        return None;
-    }
 
-    let session_folder = session_folder.unwrap();
     if browser == Browser::Edge {
-        if cfg!(target_os = "windows") {
-            browser_data_path = Some(format!("{}\\AppData\\Local\\Microsoft\\Edge", homedir));
-        }
-    } else if browser == Browser::Chrome {
-        if cfg!(target_os = "windows") {
-            browser_data_path = Some(format!("{}\\AppData\\Local\\Google\\Chrome", homedir));
-        } else if cfg!(target_os = "linux") {
-            browser_data_path = Some(format!("{}/.config/google-chrome", homedir));
-        } else if cfg!(target_os = "macos") {
-            browser_data_path = Some(format!(
-                "{}/Library/Application Support/Google/Chrome",
+        return if cfg!(target_os = "windows") {
+            Some(format!(
+                "{}\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Sessions",
                 homedir
-            ));
-        }
-    } else if browser == Browser::Firefox {
-        if cfg!(target_os = "windows") {
-            browser_data_path = Some(format!("{}\\AppData\\Roaming\\Mozilla\\Firefox", homedir));
-        } else if cfg!(target_os = "linux") {
-            browser_data_path = Some(format!("{}/.mozilla/firefox", homedir));
-        } else if cfg!(target_os = "macos") {
-            browser_data_path = Some(format!("{}/Library/Application Support/Firefox", homedir));
-        }
-    } else if browser == Browser::Opera {
-        if cfg!(target_os = "windows") {
-            browser_data_path = Some(format!(
-                "{}\\AppData\\Roaming\\Opera Software\\Opera Stable",
+            ))
+        } else {
+            warn!("Edge is only supported on Windows");
+            None
+        };
+    }
+    if browser == Browser::Chrome {
+        return if cfg!(target_os = "windows") {
+            Some(format!(
+                "{}\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Sessions",
                 homedir
-            ));
+            ))
         } else if cfg!(target_os = "linux") {
-            browser_data_path = Some(format!("{}/.config/opera", homedir));
+            Some(format!(
+                "{}/.config/google-chrome/Default/Sessions",
+                homedir
+            ))
         } else if cfg!(target_os = "macos") {
-            browser_data_path = Some(format!(
+            Some(format!(
+                "{}/Library/Application Support/Google/Chrome/Default/Sessions",
+                homedir
+            ))
+        } else {
+            None
+        };
+    }
+    if browser == Browser::Opera {
+        return if cfg!(target_os = "windows") {
+            Some(format!(
+                "{}\\AppData\\Roaming\\Opera Software\\Opera Stable\\User Data\\Default\\Sessions",
+                homedir
+            ))
+        } else if cfg!(target_os = "linux") {
+            Some(format!("{}/.config/opera/Default/Sessions", homedir))
+        } else if cfg!(target_os = "macos") {
+            Some(format!(
                 "{}/Library/Application Support/com.operasoftware.Opera",
                 homedir
-            ));
-        }
-    } else if browser == Browser::Brave {
-        if cfg!(target_os = "windows") {
-            browser_data_path = Some(format!(
-                "{}\\AppData\\Local\\BraveSoftware\\Brave-Browser",
+            ))
+        } else {
+            None
+        };
+    }
+    if browser == Browser::Brave {
+        return if cfg!(target_os = "windows") {
+            Some(format!(
+                "{}\\AppData\\Local\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Session",
                 homedir
-            ));
+            ))
         } else if cfg!(target_os = "linux") {
-            browser_data_path = Some(format!("{}/.config/BraveSoftware", homedir));
+            Some(format!("{}/.config/BraveSoftware/Brave-Browser/Default/Session", homedir))
         } else if cfg!(target_os = "macos") {
-            browser_data_path = Some(format!(
+            Some(format!(
                 "{}/Library/Application Support/BraveSoftware/Brave-Browser",
                 homedir
-            ));
-        }
-    } else if browser == Browser::Safari {
-        if cfg!(target_os = "macos") {
-            browser_data_path = Some(format!("{}/Library/Safari", homedir));
+            ))
+        } else {
+            None
+        };
+    }
+    // Firefox and Safari don't use Chromium session files.
+    if browser == Browser::Firefox {
+        return if cfg!(target_os = "windows") {
+            Some(format!("{}\\AppData\\Roaming\\Mozilla\\Firefox", homedir))
+        } else if cfg!(target_os = "linux") {
+            let moz_folder = format!("{}/.mozilla/firefox", homedir);
+            let content = fs::read_to_string(format!("{}/installs.ini", moz_folder)).ok()?;
+            let default_profile = content.lines()
+                .find(|line| line.starts_with("Default="))?
+                .split('=')
+                .nth(1)?
+                .trim();
+            Some(format!("{}/{}/sessionstore-backups", moz_folder, default_profile))
+        } else if cfg!(target_os = "macos") {
+            Some(format!("{}/Library/Application Support/Firefox", homedir))
+        } else {
+            None
+        };
+    }
+    if browser == Browser::Safari {
+        return if cfg!(target_os = "macos") {
+            Some(format!("{}/Library/Safari", homedir))
+        } else {
+            None
         }
     }
-    if browser_data_path.is_none() {
-        return None;
-    }
-    let browser_data_path = browser_data_path.unwrap();
-    let session_path = format!("{}/{}", browser_data_path, session_folder);
-
-    Some(session_path)
+    None
 }
 
 pub fn get_browser_active_tab_url(browser: Browser) -> Option<String> {
     let session_file = get_current_active_session_file(browser)?;
-    chromium::read_snss_file(session_file)
+    chromium::get_current_active_url(session_file)
 }
 
 #[cfg(test)]
