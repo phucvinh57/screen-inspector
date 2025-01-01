@@ -11,10 +11,11 @@ pub struct WindowInformation {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Browser {
     Chrome,
-    Firefox,
     Opera,
     Brave,
     Edge,
+    Firefox,
+    Safari,
     Other,
 }
 

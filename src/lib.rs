@@ -1,31 +1,24 @@
 mod browser;
-mod darwin;
 mod device;
-mod linux;
+mod native_app;
 mod snss;
 mod types;
-mod windows;
-
 pub use {device::*, types::WindowInformation};
 
-#[cfg(target_os = "macos")]
-pub use darwin::get_current_window_information;
-#[cfg(target_os = "linux")]
-pub use linux::get_current_window_information;
-#[cfg(target_os = "windows")]
-pub use windows::get_current_window_information;
+pub fn get_current_window_information() -> Option<WindowInformation> {
+    native_app::get_current_window_information()
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use log::debug;
     use {std::thread::sleep, std::time::Duration};
 
     #[test]
     fn test_get_current_window_information() {
         sleep(Duration::from_secs(2));
         let window_info = get_current_window_information().unwrap();
-        debug!("{:?}", window_info);
+        println!("{:?}", window_info);
     }
 
     #[test]
