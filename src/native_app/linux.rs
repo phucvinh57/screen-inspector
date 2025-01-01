@@ -1,11 +1,11 @@
 #[cfg(target_os = "linux")]
 use {
-    super::types::WindowInformation,
+    crate::WindowInformation,
     anyhow::{anyhow, Ok, Result},
     regex::Regex,
     std::fs,
     std::process::Command,
-    std::time::SystemTime
+    std::time::SystemTime,
 };
 
 #[cfg(target_os = "linux")]

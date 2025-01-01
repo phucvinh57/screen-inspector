@@ -1,5 +1,4 @@
 use crate::{snss, types::Browser};
-use log::debug;
 use std::fs;
 
 /// Get most recently modified session file from browser session folder
@@ -100,6 +99,10 @@ fn get_session_folder_path(browser: Browser) -> Option<String> {
                 homedir
             ));
         }
+    } else if browser == Browser::Safari {
+        if cfg!(target_os = "macos") {
+            browser_data_path = Some(format!("{}/Library/Safari", homedir));
+        }
     }
     if browser_data_path.is_none() {
         return None;
@@ -112,10 +115,7 @@ fn get_session_folder_path(browser: Browser) -> Option<String> {
 
 pub fn get_browser_active_tab_url(browser: Browser) -> Option<String> {
     let session_file = get_current_active_session_file(browser)?;
-
-    debug!("session file: {:?}", session_file);
     snss::read_snss_file(session_file);
-
     None
 }
 
@@ -123,6 +123,7 @@ pub fn get_browser_active_tab_url(browser: Browser) -> Option<String> {
 mod tests {
     use super::*;
     use env_logger;
+    use log::debug;
 
     #[test]
     fn test_get_browser_active_tab_url() {
