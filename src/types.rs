@@ -20,22 +20,22 @@ pub enum Browser {
 }
 
 impl WindowInformation {
-    pub fn get_browser_type(&self) -> Browser {
+    pub fn get_browser_type(&self) -> Option<Browser> {
         for class_name in &self.class {
             let class_name = class_name.to_lowercase();
             if class_name.contains("chrome") {
-                return Browser::Chrome;
+                return Some(Browser::Chrome);
             } else if class_name.contains("firefox") {
-                return Browser::Firefox;
+                return Some(Browser::Firefox);
             } else if class_name.contains("opera") {
-                return Browser::Opera;
+                return Some(Browser::Opera);
             } else if class_name.contains("brave") {
-                return Browser::Brave;
+                return Some(Browser::Brave);
             } else if class_name.contains("msedge") {
-                return Browser::Edge;
+                return Some(Browser::Edge);
             }
         }
 
-        Browser::Other
+        None
     }
 }
